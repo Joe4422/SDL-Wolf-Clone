@@ -144,6 +144,10 @@ ANGLE	Angle_Normalise
 	{
 		angle -= MAX_ANGLE;
 	}
+	while (angle < MIN_ANGLE)
+	{
+		angle += MAX_ANGLE;
+	}
 
 	return angle;
 }

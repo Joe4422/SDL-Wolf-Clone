@@ -16,6 +16,4 @@ struct point
 };
 typedef struct point WORLD_POINT, MAP_POINT, SCREEN_POINT;
 
-typedef uint16_t ANGLE;
-
 #endif

@@ -48,6 +48,11 @@ FP	FP_Div
 	FP	b
 );
 
+FP	FP_Neg
+(
+	FP	fp
+);
+
 // -1 = a < b, 0 = a == b, 1 = a > b
 int8_t	FP_Compare
 (
@@ -56,6 +61,11 @@ int8_t	FP_Compare
 );
 
 FP	FP_Abs
+(
+	FP	fp
+);
+
+FP	FP_Sqrt
 (
 	FP	fp
 );

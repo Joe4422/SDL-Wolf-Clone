@@ -3,6 +3,7 @@
  ***********************************************/
 #include "graphics.h"
 
+#include <stdlib.h>
 #include <stdbool.h>
 #include <SDL2/SDL.h>
 
@@ -113,7 +114,8 @@ void	Graphics_DrawFrame
 )
 {
 	// Quick and dirty
-	int i, j;
+	int i;
+	int j;
 	SCREEN_POINT center = { FRAMEBUFFER_WIDTH / 2, FRAMEBUFFER_HEIGHT / 2 };
 
 	SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
@@ -124,15 +126,25 @@ void	Graphics_DrawFrame
 	{
 		RAY ray;
 		int16_t dy;
-		Ray_PerformRayCast(data->currentMap, data->player, &ray, Angle_Sub(data->player->angle, (ANGLE)(FOV / 2 + i)));
+		Ray_PerformRayCast(data->currentMap, data->player, &ray, Angle_Add(i, data->player->angle));
 
-		dy = FP_ToInt(FP_Div(FP_FromInt(FRAMEBUFFER_HEIGHT), ray.distance)) / 2;
+		if (ray.distance == FP_FromInt(0))
+		{
+			continue;
+		}
+		dy = FP_ToInt(FP_Div(FP_FromInt(FRAMEBUFFER_HEIGHT * 2), ray.distance));
 
 		for (j = FRAMEBUFFER_WIDTH / FOV * i; j < FRAMEBUFFER_WIDTH / FOV * (i + 1); j++)
 		{
 			SDL_RenderDrawLine(renderer, j, center.Y - dy, j, center.Y + dy);
 		}
+		
+		SDL_RenderDrawLine(renderer, data->player->pos.X, data->player->pos.Y, ray.start.X + FP_ToInt(ray.offsetX), ray.start.Y + FP_ToInt(ray.offsetY));
+		// SDL_RenderPresent(renderer);
+		// for (j = 0; j < 100000000; j++);
+		// SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
+		// SDL_RenderClear(renderer);
+		// SDL_SetRenderDrawColor(renderer, 0, 0, 255, 255);
 	}
-
 	SDL_RenderPresent(renderer);
 }

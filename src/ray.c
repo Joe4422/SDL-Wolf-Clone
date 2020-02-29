@@ -49,17 +49,13 @@ void	Ray_PerformRayCast
 		ray->dy = FP_FromInt(1);
 	}
 
-	// Approximate pythagorean theorem
-	if (FP_Abs(ray->dx) >= FP_Abs(ray->dy))
+	if (angle < 90 || angle > 270)
 	{
-		// ((7/8) * ray->dx) + (ray->dy / 2)
-		ray->distEachInc = FP_Add(FP_Mul(FP_Div(FP_FromInt(7), FP_FromInt(8)), ray->dx), FP_Div(ray->dy, FP_FromInt(2)));
+		ray->dx = FP_Neg(ray->dx);
+		ray->dy = FP_Neg(ray->dy);
 	}
-	else
-	{
-		// ((7/8) * ray->dy) + (ray->dx / 2)
-		ray->distEachInc = FP_Add(FP_Mul(FP_Div(FP_FromInt(7), FP_FromInt(8)), ray->dy), FP_Div(ray->dx, FP_FromInt(2)));
-	}
+
+	ray->distEachInc = FP_Sqrt(FP_Add(FP_Mul(ray->dx, ray->dx), FP_Mul(ray->dy, ray->dy)));
 
 	ray->start = player->pos;
 	ray->distance = 0;
