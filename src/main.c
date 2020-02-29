@@ -2,7 +2,6 @@
 #define SDL_MAIN_HANDLED
 
 #include <SDL2/SDL.h>
-#include "fixedpoint.h"
 #include "map.h"
 #include "player.h"
 #include "ray.h"
@@ -13,34 +12,21 @@
 #include <stdint.h>
 #include <stdlib.h>
 
-#define FOV	90
-
-FP	floatToFP(float fl)
-{
-	FP out;
-	float fl_abs;
-	fl *= 32;
-	fl = roundf(fl);
-	if (fl < 0) fl_abs = -fl; else fl_abs = fl;
-	out = (FP)fl_abs;
-	out &= 0x7FFF;
-	if (fl < 0) out |= 0x8000;
-	return out;
-}
+#define FOV	(90)
 
 int main(int argc, char* argv[])
 {
-	WALL_TYPE 		wt1[] = { STONE_BLUE, STONE_BLUE, STONE_BLUE, STONE_BLUE };
-	WALL_TYPE 		wt2[] = { STONE_BLUE,       NONE,       NONE, STONE_BLUE };
-	WALL_TYPE *	data[] =  { (WALL_TYPE *)wt1, (WALL_TYPE *)wt2, (WALL_TYPE *)wt2, (WALL_TYPE *)wt1 };
+	WALL_TYPE 		wt1[] = { STONE_BLUE, STONE_BLUE, STONE_BLUE, STONE_BLUE, STONE_BLUE, STONE_BLUE, STONE_BLUE, STONE_BLUE };
+	WALL_TYPE 		wt2[] = { STONE_BLUE,       NONE,       NONE,       NONE,       NONE,       NONE,       NONE, STONE_BLUE };
+	WALL_TYPE *	data[] =  { (WALL_TYPE *)wt1, (WALL_TYPE *)wt2, (WALL_TYPE *)wt2, (WALL_TYPE *)wt2, (WALL_TYPE *)wt2, (WALL_TYPE *)wt2, (WALL_TYPE *)wt2, (WALL_TYPE *)wt1 };
 	MAP testMap = 
 	{
-		4,
-		4,
+		8,
+		8,
 		data,
 		"test map"
 	};
-	PLAYER player = { 1, { WALL_LENGTH * 2, WALL_LENGTH * 2 }, 10};
+	PLAYER player = { 1, { WALL_WIDTH * 2, WALL_WIDTH * 2 }, 0};
 	GAME_DATA game = { &testMap, &player };
 	FRAMEBUFFER_HANDLE * fb;
 	bool draw = true;
@@ -66,11 +52,9 @@ int main(int argc, char* argv[])
 				{
 					case SDLK_q:
 						player.angle = Angle_Sub(player.angle, 10);
-						printf("ANGLE: %d\n", player.angle);
 						break;
 					case SDLK_e:
 						player.angle = Angle_Add(player.angle, 10);
-						printf("ANGLE: %d\n", player.angle);
 						break;
 					case SDLK_w:
 						player.pos.Y -= 10;
@@ -90,20 +74,14 @@ int main(int argc, char* argv[])
 	}
 
 	// int i, j;
-	// for (i = 0; i < 13; i++)
+	// for (i = 0; i < 36; i++)
 	// {
 	// 	printf("\t");
-	// 	for (j = 0; j < 16; j++)
+	// 	for (j = 0; j < 10; j++)
 	// 	{
-	// 		printf("0x%04X, ", floatToFP(sqrtf(powf((i * 16 + j) - 150, 2) + 1.0f)));
+	// 		printf("%f, ", tanf((i * 10 + j) * (M_PI / 180)));
 	// 	}
 	// 	printf("\n");
-	// }
-
-	// for (i = 0; i < 360; i++)
-	// {
-	// 	if (Angle_Tan(i) == 0 || Angle_Tan(i) == 0x8000) continue;
-	// 	printf("%d, ", FP_ToInt(FP_Div(1, Angle_Tan(i))));
 	// }
 
 	return 0;

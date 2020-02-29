@@ -6,12 +6,10 @@
  *****************************************************************************/
 #include <stdint.h>
 
-#include "fixedpoint.h"
-
 /******************************************************************************
  * Typedefs
  *****************************************************************************/
-typedef int16_t ANGLE;
+typedef float ANGLE;
 
 /******************************************************************************
  * Function definitions
@@ -33,19 +31,24 @@ ANGLE	Angle_Sub
 	ANGLE	b
 );
 
-FP	Angle_Sin
+float	Angle_Sin
 (
 	ANGLE	angle
 );
 
-FP	Angle_Cos
+float	Angle_Cos
 (
 	ANGLE	angle
 );
 
-FP	Angle_Tan
+float	Angle_Tan
 (
 	ANGLE	angle
+);
+
+ANGLE	Angle_InvTan
+(
+	float	ft
 );
 
 #endif

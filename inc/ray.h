@@ -8,7 +8,6 @@
 #include <stdbool.h>
 
 #include "data.h"
-#include "fixedpoint.h"
 #include "map.h"
 #include "player.h"
 
@@ -18,13 +17,14 @@
 typedef struct ray
 {
 	WORLD_POINT	start;
-	FP			offsetX;
-	FP			offsetY;
-	FP			dx;
-	FP			dy;
-	FP			distance;
-	FP			distEachInc;
+	float		offsetX;
+	float		offsetY;
+	float		dx;
+	float		dy;
+	float		distance;
+	float		distEachInc;
 	WALL_TYPE	hitWallType;
+	bool		xAligned;
 } RAY;
 
 /******************************************************************************

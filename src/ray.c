@@ -3,15 +3,17 @@
  *****************************************************************************/
 #include "ray.h"
 
+#include <math.h>
+
 /******************************************************************************
  * Defines
  *****************************************************************************/
-#define RAY_MAX_STEPS	256
+#define RAY_MAX_STEPS	(256)
 
 /******************************************************************************
  * Function declarations
  *****************************************************************************/
-FP	Ray_CalculateSlope
+float	Ray_CalculateSlope
 (
 	ANGLE	angle
 );
@@ -27,7 +29,7 @@ void	Ray_PerformRayCast
 	ANGLE		angle
 )
 {
-	FP			slope;
+	float			slope;
 	uint16_t	i;
 
 	// Null check on arguments
@@ -38,24 +40,40 @@ void	Ray_PerformRayCast
 
 	slope = Ray_CalculateSlope(angle);
 
-	if (FP_Compare(slope, FP_FromInt(1)) <= 0)
+	if (slope > 0)
 	{
-		ray->dx = FP_FromInt(1);
-		ray->dy = slope;
+		if (slope <= 1.0f)
+		{
+			ray->dx = 1.0f;
+			ray->dy = slope;
+		}
+		else
+		{
+			ray->dx = 1.0f / slope;
+			ray->dy = 1.0f;
+		}
 	}
 	else
 	{
-		ray->dx = FP_Div(FP_FromInt(1), slope);
-		ray->dy = FP_FromInt(1);
+		if (slope >= -1.0f)
+		{
+			ray->dx = 1.0f;
+			ray->dy = slope;
+		}
+		else
+		{
+			ray->dx = 1.0f / -slope;
+			ray->dy = -1.0f;
+		}
 	}
 
 	if (angle < 90 || angle > 270)
 	{
-		ray->dx = FP_Neg(ray->dx);
-		ray->dy = FP_Neg(ray->dy);
+		ray->dx = -ray->dx;
+		ray->dy = -ray->dy;
 	}
 
-	ray->distEachInc = FP_Sqrt(FP_Add(FP_Mul(ray->dx, ray->dx), FP_Mul(ray->dy, ray->dy)));
+	ray->distEachInc = sqrtf(powf(ray->dx, 2) + powf(ray->dy, 2));
 
 	ray->start = player->pos;
 	ray->distance = 0;
@@ -64,20 +82,29 @@ void	Ray_PerformRayCast
 
 	for (i = 0; i < RAY_MAX_STEPS; i++)
 	{
-		WORLD_POINT	currentPos = { ray->start.X + FP_ToInt(ray->offsetX), ray->start.Y + FP_ToInt(ray->offsetY) };
-		MAP_POINT	currentMapPos = { currentPos.X / WALL_LENGTH, currentPos.Y / WALL_LENGTH };
+		WORLD_POINT	currentPos = { ray->start.X + ray->offsetX, ray->start.Y + ray->offsetY };
+		MAP_POINT	currentMapPos = { currentPos.X / WALL_WIDTH, currentPos.Y / WALL_WIDTH };
 		WALL_TYPE	currentMapPosWallType = Map_GetWallType(map, &currentMapPos);
 
 		if (currentMapPosWallType != NONE)
 		{
 			ray->hitWallType = currentMapPosWallType;
+			if (currentPos.X % WALL_WIDTH == 0)
+			{
+				ray->xAligned = true;
+			}
+			else
+			{
+				ray->xAligned = false;
+			}
+			
 			return;
 		}
 		else
 		{
-			ray->distance = FP_Add(ray->distance, ray->distEachInc);
-			ray->offsetX = FP_Add(ray->offsetX, ray->dx);
-			ray->offsetY = FP_Add(ray->offsetY, ray->dy);
+			ray->distance = ray->distance + ray->distEachInc;
+			ray->offsetX = ray->offsetX + ray->dx;
+			ray->offsetY = ray->offsetY + ray->dy;
 		}
 	}
 	ray->hitWallType = NONE;
@@ -85,7 +112,7 @@ void	Ray_PerformRayCast
 	return;
 }
 
-FP	Ray_CalculateSlope
+float	Ray_CalculateSlope
 (
 	ANGLE	angle
 )

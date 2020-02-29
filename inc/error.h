@@ -8,7 +8,7 @@
 #define THROW_ERROR(err, msg)	return (MESSAGE){ err, msg, __func__ }
 #define TRY(err)				if (err.status != STATUS_OK) return err
 
-#define MIN_REPORTED_ERR_LVL	STATUS_MINOR_ERROR
+#define MIN_REPORTED_ERR_LVL	(STATUS_MINOR_ERROR)
 
 /******************************************************************************
  * Typedefs

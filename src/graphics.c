@@ -12,10 +12,13 @@
 /***********************************************
  * Defines
  ***********************************************/
-#define FRAMEBUFFER_WIDTH	640
-#define FRAMEBUFFER_HEIGHT	480
+#define FRAMEBUFFER_WIDTH	(320)
+#define FRAMEBUFFER_HEIGHT	(200)
 
-#define FOV					90
+#define FOV					(90.0f)
+#define FOV_RAY_INCREMENT	(0.1f)
+#define RAY_COUNT			(FOV / FOV_RAY_INCREMENT)
+#define RAYS_PER_COLUMN		(RAY_COUNT / FRAMEBUFFER_WIDTH)
 
 /***********************************************
  * Typedefs
@@ -25,6 +28,14 @@ struct framebuffer_handle
 	uint32_t *		framebuffer;
 	SDL_Texture *	texture;
 };
+
+typedef struct color
+{
+	uint8_t	a;
+	uint8_t	r;
+	uint8_t	g;
+	uint8_t	b;
+} COLOR;
 
 /***********************************************
  * Global variables
@@ -117,34 +128,79 @@ void	Graphics_DrawFrame
 	int i;
 	int j;
 	SCREEN_POINT center = { FRAMEBUFFER_WIDTH / 2, FRAMEBUFFER_HEIGHT / 2 };
+	float distToVplane;
 
 	SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
 	SDL_RenderClear(renderer);
-	SDL_SetRenderDrawColor(renderer, 0, 0, 255, 255);
 
-	for (i = 0; i < FOV; i++)
+	for (i = 0; i < FRAMEBUFFER_WIDTH; i++)
 	{
-		RAY ray;
 		int16_t dy;
-		Ray_PerformRayCast(data->currentMap, data->player, &ray, Angle_Add(i, data->player->angle));
+		float avgDist = 0;
+		ANGLE localAngle;
+		ANGLE worldAngle;
+		ANGLE wallTopAngle;
+		float tan;
+		COLOR wallColor;
+		
+		RAY ray;
 
-		if (ray.distance == FP_FromInt(0))
+		for (j = 0; j < RAYS_PER_COLUMN; j++)
+		{
+			localAngle = Angle_Normalise(((i * RAYS_PER_COLUMN + j) * FOV_RAY_INCREMENT) - (FOV / 2));
+			worldAngle = Angle_Add(localAngle, data->player->angle);
+
+			Ray_PerformRayCast(data->currentMap, data->player, &ray, worldAngle);
+			
+			avgDist += ray.distance;
+		}
+
+		if (ray.hitWallType == NONE)
 		{
 			continue;
 		}
-		dy = FP_ToInt(FP_Div(FP_FromInt(FRAMEBUFFER_HEIGHT * 2), ray.distance));
 
-		for (j = FRAMEBUFFER_WIDTH / FOV * i; j < FRAMEBUFFER_WIDTH / FOV * (i + 1); j++)
+		if (Angle_Sin(localAngle) != 0)
 		{
-			SDL_RenderDrawLine(renderer, j, center.Y - dy, j, center.Y + dy);
+			distToVplane = (i - (FRAMEBUFFER_WIDTH / 2)) / Angle_Sin(localAngle);
+		}
+
+		avgDist /= RAYS_PER_COLUMN;
+
+		tan = ((float)WALL_HEIGHT / 2.0f) / avgDist;
+		wallTopAngle = Angle_InvTan(tan);
+
+		if (localAngle < Angle_Normalise(-45.0f) || localAngle > Angle_Normalise(45.0f))
+		{
+			dy = Angle_Tan(wallTopAngle) * distToVplane;
+		}
+		else
+		{
+			dy = (1 / Angle_Tan(wallTopAngle)) * distToVplane;
+		}
+
+		if (ray.xAligned)
+		{
+			wallColor.a = 255;
+			wallColor.r = 0;
+			wallColor.g = 0;
+			wallColor.b = 224;
+		}
+		else
+		{
+			wallColor.a = 255;
+			wallColor.r = 0;
+			wallColor.g = 0;
+			wallColor.b = 255;
 		}
 		
-		SDL_RenderDrawLine(renderer, data->player->pos.X, data->player->pos.Y, ray.start.X + FP_ToInt(ray.offsetX), ray.start.Y + FP_ToInt(ray.offsetY));
-		// SDL_RenderPresent(renderer);
-		// for (j = 0; j < 100000000; j++);
-		// SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
-		// SDL_RenderClear(renderer);
-		// SDL_SetRenderDrawColor(renderer, 0, 0, 255, 255);
+		
+		SDL_SetRenderDrawColor(renderer, 95, 95, 95, 255);
+		SDL_RenderDrawLine(renderer, i, 0, i, center.Y - dy - 1);
+		SDL_SetRenderDrawColor(renderer, wallColor.r, wallColor.g, wallColor.b, wallColor.a);
+		SDL_RenderDrawLine(renderer, i, center.Y - dy, i, center.Y + dy);
+		SDL_SetRenderDrawColor(renderer, 159, 159, 159, 255);
+		SDL_RenderDrawLine(renderer, i, center.Y + dy + 1, i, FRAMEBUFFER_HEIGHT - 1);
 	}
 	SDL_RenderPresent(renderer);
 }
